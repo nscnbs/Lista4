@@ -1,0 +1,282 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+class Server{
+ - playerNumber : int
+ - gameRules : GameRules
+ - game:Game_Servis
+ + BlockingQueue<String> queue
+ - {static}  data : SharedData
+ + Collection<PlayerHandler> players
+ + stringBuilder:StringBuilder
+ + Collection<String> playersName
+ + pool :  Executor
+ + listener : ServerSocket
+ + currentPlayerNumber : int
+ + ArrayList<String> playersNames
+ + message : String
+ + command : String
+ + s : Server
+ + Server()
+ + void broadcast(String message)
+ + void getNewConfig()
+ + void sendPlayersNames()
+ - void resetConnection()
+ + void start()
+ + {static}void main(String[] args)
+ + void notifyServer(String message)
+}
+class Game_Servis{
+ - rules :  GameRules
+ - currentPlayer : int
+ - ArrayList<String> playersNames
+ + Game_Servis(GameRules rules, ArrayList<String> playersNames)
+ - void setNextPlayer()
+ + String getCurrentPlayer()
+ + boolean acceptMove(String str)
+ + boolean ended(String str)
+}
+
+class GameRules{
+ +  BlockRules : enum
+ +  blockRule : BlockRules
+ + loseIfUnableToMove : boolean
+ + turnSkippable : boolean
+ + gameStopsAtFirstWin : boolean
+ + GameRules()
+}
+class PlayerHandler{
+ - name : String
+ - player : PlayerSocket
+ - BlockingQueue<String> queue
+ - serverListener :  ServerListener
+ - data : SharedData
+ + temp : String
+ + Collection<String> names
+ +  PlayerHandler(PlayerSocket player, SharedData data, ServerListener serverListener)
+ - synchronized String receiveName()
+ -  synchronized void sendPlayerAmount()
+ + void sendStr(String string)
+ +  void run()
+ + void close()
+}
+
+class PlayerSocket{
+    -  socket : Socket
+   -  out : PrintWriter
+   -  in : BufferedReader
+   +  temp : String
+   + PlayerSocket(Socket socket)
+   + synchronized Socket getSocket()
+   + synchronized void close()
+   + synchronized void sendStr(String str)
+   + synchronized String receive()
+}
+interface ServerListener{
+ + void notifyServer(String message)
+}
+ class SharedData{
+   - {static} instance : SharedData
+   - {static}  mutex : Object
+   - CopyOnWriteArrayList<String> names
+   - CopyOnWriteArrayList<PlayerHandler> players
+   - amount : int
+   + result : SharedData
+   - SharedData()
+   + {static} SharedData getInstance()
+   + void setNumberOfPlayers(int amount)
+   + int getNumberOfPlayers()
+   + Collection<String> getNames()
+   + Collection<PlayerHandler> getPlayerHandlers()
+   + void addName(String name)
+   + void addPlayerHandlers(PlayerHandler player)
+   + void deleteName(String name)
+   + void deletePlayerHandlers(PlayerHandler player)
+}
+class UserInterface{
+ - {static} sc : Scanner
+ +  str : String
+ +  temp : String
+ + {static} void print(String str)
+ + {static} String getString()
+ +  {static} int getInt(String prompt)
+}
+class Client{
+ +   client : Client
+ -  in : BufferedReader
+ -  out : PrintWriter
+ -  socket : Socket
+ -  game : Game_Client
+ + startMenu :  StartMenu
+ + gameConfig : GameConfig
+ + fromServer : String
+ + command : String
+ + amountStr : String
+ + amount : int
+ + playersNames : String
+ + ArrayList<String> names
+ + String[] args
+ + playerName,pawnId ,nextPlayer,fieldTo ,fieldFrom : String
+ + String[] argsW
+ + String playerNameW,pawnIdW,fieldFromW ,fieldToW : String
+-  {static} void main(String[] args)
+- void execute()
+- boolean sendMove(String message)
+}
+class Board{
+  - int[] fieldArray;
+  - size : int
+  - ArrayList<Pawn> pawns
+  - ArrayList<Field> fields
+  - ArrayList<Field> possibleFields
+  - ArrayList<Player> players
+  - activePawn : Pawn
+  - whoseTurn : Player
+  - clientListener : ClientListener
+  - player : Player
+  - HashMap<Color,String[]> winMap
+  - countPawns : int
+  + String[] idTab
+  + List<String> idList
+  + xPosition :int
+  + yPosition : int
+  + id : int
+  + row :  int
+  + int[] playerPawnsPositions
+  + newPawn: Pawn
+  + fieldX, fieldY, pawnX , pawnY : int
+  + potentialFieldX,potentialFieldY : int
+  - innerDistanceX ,innerDistanceY,fieldsDistanceX, fieldsDistanceY : int
+  +  ArrayList<Field> potentialFieldToHopFrom
+  + ArrayList<Field> checkedFields
+  + field : Field
+  + pawn :  Pawn
+  + fromField : Field
+  + pawnFound :  boolean
+  + Board(int size, GameConfig gameConfig, ClientListener clientListener)
+  - Player findPlayerByNick(String nick)
+  + void paintComponent(Graphics g)
+  - void paintPossibleFields(Graphics g)
+  - void paintPawns(Graphics g)
+  - void updateCountPawns(Field field)
+  - boolean ifPlayerWins()
+  - void printPlayers(Graphics g)
+  - void paintFields(Graphics g)
+  - void setFields()
+  -void setPawns()
+  -boolean canPawnMoveThere(Pawn pawn, Field field)
+  - boolean canPawnPossiblyMoveThere(Field potentialField, Field field)
+  - boolean isFieldOccupied(Field field)
+  - boolean canPawnHopThere(Pawn pawn, Field jumpOverField, Field destinationField)
+  - boolean canPawnPotentiallyHopThere(Field potentialField, Field jumpOverField, Field destinationField)
+  - void setPossibleFields(Graphics g)
+  + void sendPawnMoveToServer(String player, String pawnId, String from, String to)
+  - Field findFieldById(String id)
+  - Pawn findPawnById(String id)
+  -void movePawnFromExternal(Pawn pawn, Field field)
+  - void sendPawnMoveToServer(Pawn pawn, Field field)
+  + void mouseClicked(MouseEvent arg0)
+  + setNextPlayer(String nextPlayerNick)
+}
+interface ClientListener {
+     + boolean sendMove(String message)
+}
+class Field {
+   - size,xPosition,yPosition : int
+   +  Field(int xPosition, int yPosition, int size, String id)
+   +String getId()
+   + int getSize()
+   + int getxPosition()
+   + int getyPosition()
+}
+class Frame{
+   - width, height : int
+   + Frame(Board board)
+
+}
+class Game_Client{
+  - gameConfig : GameConfig
+  - board :  Board
+  -  gameFrame: Frame
+  + Game_Client(GameConfig gameConfig, Client client)
+  + void movePawn(String player, String pawnId, String from, String to)
+  + void setNextPlayer(String nextPlayer)
+}
+class GameConfig{
+ + int[] fieldArray
+ + ArrayList<Player> players
+ - amount : int
+ - ArrayList<String> names
+ - playerNick : String
+ - HashMap<Color,String[]> winMap
+ + void setPlayersAmount(int amount)
+ + void setPlayerNick(String playerNick)
+ + String getPlayerNick()
+ + void setNames(ArrayList<String> names)
+ + HashMap<Color, String[]> getWinMap()
+ + void preparePlayers()
+ + player1,player2,player3,player4,player5 ,player6 : Player
+ + String[] player1Win ,player2Win
+ }
+ class Pawn {
+  -  color : Color
+  -  xPosition,yPosition,size: int
+  -  playerNick ,id: String
+  +  String getPlayerNick()
+  + void setPlayerNick(String playerNick)
+  + Pawn(int size)
+  + void setPosition(int xPosition, int yPosition)
+  + int getX()
+  + int getY()
+  + void setColor(Color color)
+  + Color getColor()
+  + String getId()
+  + int getSize()
+  + {static} class IdGenerator
+  +  id : int;
+  + static String getNext()
+ }
+class Player {
+   - ArrayList<Pawn> myPawns;
+   -  color : Color
+   - nick : String
+   - int[][] playerPawnsPositions;
+   - HashMap<String[], Color> playerWin
+   + Player()
+   + Color getColor()
+   +void setColor(Color color)
+   + String getNick()
+   +void setNick(String nick)
+   +ArrayList<Pawn> getMyPawns()
+   + void addPawn(Pawn pawn)
+   +int[][] getPlayerPawnsPositions()
+   +void setPlayerPawnsPositions(int[][] playerPawnsPositions)
+}
+
+class StartMenu {
+  -  frame : JFrame
+  -  name : String
+  + StartMenu()
+  - String getName()
+  + String getPlayerName()
+}
+Server -[dashed]->ServerListener
+Server -->GameRules
+Server --> SharedData
+Client -[dashed]->ClientListener
+Client -->Game_Client
+Client -->StartMenu
+Client -->GameConfig
+Game_Client -->Board
+GameConfig -->Player
+Board -->Pawn
+Board -->Player
+Board -->Field
+Game_Client-->Frame
+Game_Servis--> GameRules
+PlayerSocket-->PlayerHandler
+Server-->UserInterface
+SharedData--> PlayerHandler
+ClientListener --> Board
+ServerListener--> PlayerHandler
+@enduml

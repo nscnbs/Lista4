@@ -1,0 +1,5 @@
+ServerTest\SharedDataTest.class
+ClientTest\PawnTest.class
+ServerTest\GameRulesTest.class
+ClientTest\FieldTest.class
+ClientTest\PlayerTest.class
